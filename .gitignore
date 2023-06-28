@@ -1,0 +1,14 @@
+# IDEs
+.idea
+.vs
+.vscode
+
+target
+
+.env
+
+# data dumps
+*.zst
+submissions.json
+comments.json
+
