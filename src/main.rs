@@ -1,5 +1,3 @@
-use aharc::run;
-
 fn main() {
-    run().unwrap();
+    aharc::run().unwrap();
 }

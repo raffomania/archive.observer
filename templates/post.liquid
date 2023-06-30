@@ -1,0 +1,11 @@
+{% render 'head' %}
+
+{% capture content %}
+  {% render 'nav' %}
+  <div class="prose mt-2">
+    <h2>{{ title }}</h2>
+    <p>{{ selftext_html }}</p>
+  </div>
+{% endcapture %}
+
+{% render 'layout', content: content %}

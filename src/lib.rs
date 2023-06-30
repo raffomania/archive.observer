@@ -69,30 +69,100 @@ pub use config::CONFIG;
 
 use anyhow::{Context, Result};
 use rayon::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub fn run() -> Result<()> {
     let lines = std::io::BufReader::new(
         std::fs::File::open("submissions.json").context("Could not read submissions.json")?,
     )
     .lines()
+    .take(500)
     .collect::<Vec<_>>();
 
-    let _submissions: Vec<Submission> = lines
+    let posts: Vec<Post> = lines
         .into_par_iter()
         .map(|maybe_line| {
             maybe_line
                 .context("could not read line")
                 .and_then(|s| serde_json::from_str(&s).context("could not deserialize"))
         })
+        .map(process_post)
         .collect::<Result<_, _>>()?;
 
-    // dbg!(submissions);
+    std::fs::create_dir_all("output/posts")?;
+
+    let parser = make_template_parser()?;
+
+    for post in posts.iter() {
+        render_post(&parser, post)?;
+    }
+
+    render_index(&parser, posts)?;
 
     Ok(())
 }
 
-#[derive(Deserialize, Debug)]
-struct Submission {
+fn process_post(post: Result<Post>) -> Result<Post> {
+    let post = post?;
+
+    let selftext_html = post
+        .selftext_html
+        .as_ref()
+        .map(html_escape::decode_html_entities)
+        .map(String::from);
+
+    Ok(Post {
+        selftext_html,
+        ..post
+    })
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Post {
     title: String,
+    id: String,
+    selftext: String,
+    selftext_html: Option<String>,
+}
+
+fn make_template_parser() -> Result<liquid::Parser> {
+    let mut partial_source = liquid::partials::InMemorySource::new();
+
+    partial_source.add("head", std::fs::read_to_string("templates/head.liquid")?);
+    partial_source.add("nav", std::fs::read_to_string("templates/nav.liquid")?);
+    partial_source.add(
+        "layout",
+        std::fs::read_to_string("templates/layout.liquid")?,
+    );
+
+    let partials = liquid::partials::EagerCompiler::new(partial_source);
+
+    liquid::ParserBuilder::with_stdlib()
+        .partials(partials)
+        .build()
+        .context("Could not build liquid parser")
+}
+
+fn render_index(parser: &liquid::Parser, posts: Vec<Post>) -> Result<()> {
+    let template = parser.parse_file("templates/index.liquid")?;
+
+    let globals = liquid::object!({ "posts": liquid::model::to_value(&posts)? });
+
+    let output = template.render(&globals)?;
+
+    std::fs::write("output/index.html", output)?;
+
+    Ok(())
+}
+
+fn render_post(parser: &liquid::Parser, post: &Post) -> Result<()> {
+    let template = parser.parse_file("templates/post.liquid")?;
+
+    let globals = liquid::to_object(&post)?;
+
+    let output = template.render(&globals)?;
+    let name = &post.id;
+    std::fs::write(format!("output/posts/{name}.html"), output)?;
+
+    Ok(())
 }

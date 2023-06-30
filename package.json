@@ -1,0 +1,19 @@
+{
+  "name": "aharc",
+  "version": "1.0.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raffomania/aharc.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/raffomania/aharc/issues"
+  },
+  "homepage": "https://github.com/raffomania/aharc#readme",
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.9",
+    "tailwindcss": "^3.3.2"
+  }
+}

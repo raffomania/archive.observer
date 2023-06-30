@@ -1,9 +1,5 @@
-# IDEs
-.idea
-.vs
-.vscode
-
 target
+node_modules
 
 .env
 
@@ -12,3 +8,4 @@ target
 submissions*
 comments*
 
+output

@@ -2,8 +2,14 @@
 set dotenv-load := true
 
 # Build and run.
-run *FLAGS:
+run *FLAGS: css
     cargo run {{FLAGS}}
+
+watch *FLAGS:
+    cargo watch -x run -i output -s 'just css'
+
+css:
+    npx tailwindcss -i css/main.css -o output/main.css
 
 # Apply strict formatting.
 fmt *FLAGS:
