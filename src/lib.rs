@@ -76,7 +76,6 @@ pub fn run() -> Result<()> {
         std::fs::File::open("submissions.json").context("Could not read submissions.json")?,
     )
     .lines()
-    .take(50_000)
     .collect::<Vec<_>>();
 
     let _submissions: Vec<Submission> = lines
