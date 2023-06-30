@@ -72,23 +72,7 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub fn run() -> Result<()> {
-    let lines = std::io::BufReader::new(
-        std::fs::File::open("submissions.json").context("Could not read submissions.json")?,
-    )
-    .lines()
-    .take(500)
-    .collect::<Vec<_>>();
-
-    let posts: Vec<Post> = lines
-        .into_par_iter()
-        .map(|maybe_line| {
-            maybe_line
-                .context("could not read line")
-                .and_then(|s| serde_json::from_str(&s).context("could not deserialize"))
-        })
-        .map(process_post)
-        .collect::<Result<_, _>>()?;
-
+    let posts = read_posts()?;
     std::fs::create_dir_all("output/posts")?;
 
     let parser = make_template_parser()?;
@@ -100,6 +84,25 @@ pub fn run() -> Result<()> {
     render_index(&parser, posts)?;
 
     Ok(())
+}
+
+fn read_posts() -> Result<Vec<Post>> {
+    let lines = std::io::BufReader::new(
+        std::fs::File::open("submissions.json").context("Could not read submissions.json")?,
+    )
+    .lines()
+    .take(500)
+    .collect::<Vec<_>>();
+
+    lines
+        .into_par_iter()
+        .map(|maybe_line| {
+            maybe_line
+                .context("could not read line")
+                .and_then(|s| serde_json::from_str(&s).context("could not deserialize"))
+        })
+        .map(process_post)
+        .collect::<Result<_, _>>()
 }
 
 fn process_post(post: Result<Post>) -> Result<Post> {
