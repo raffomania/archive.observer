@@ -9,6 +9,6 @@ target
 
 # data dumps
 *.zst
-submissions.json
-comments.json
+submissions*
+comments*
 

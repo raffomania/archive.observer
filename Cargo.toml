@@ -24,9 +24,10 @@ envy = "0.4"
 once_cell = "1"
 serde_json = "1.0.99"
 anyhow = "1.0.71"
+rayon = "1.7.0"
 
 [dev-dependencies]
-criterion = "0.4"
+criterion = { version = "0.4", features = ["html_reports"] }
 pretty_assertions = "1"
 
 [package.metadata.cargo-udeps.ignore]
@@ -44,6 +45,5 @@ codegen-units = 1
 incremental = false
 
 [[bench]]
-name = "benches"
+name = "my_benchmark"
 harness = false
-required-features = ["full"]

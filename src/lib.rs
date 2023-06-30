@@ -63,12 +63,37 @@
 
 mod config;
 
+use std::io::BufRead;
+
 pub use config::CONFIG;
 
 use anyhow::{Context, Result};
+use rayon::prelude::*;
+use serde::Deserialize;
 
 pub fn run() -> Result<()> {
-    std::fs::File::open("submissions.json").context("Could not open submissions.json")?;
+    let lines = std::io::BufReader::new(
+        std::fs::File::open("submissions.json").context("Could not read submissions.json")?,
+    )
+    .lines()
+    .take(50_000)
+    .collect::<Vec<_>>();
+
+    let _submissions: Vec<Submission> = lines
+        .into_par_iter()
+        .map(|maybe_line| {
+            maybe_line
+                .context("could not read line")
+                .and_then(|s| serde_json::from_str(&s).context("could not deserialize"))
+        })
+        .collect::<Result<_, _>>()?;
+
+    // dbg!(submissions);
 
     Ok(())
+}
+
+#[derive(Deserialize, Debug)]
+struct Submission {
+    title: String,
 }
