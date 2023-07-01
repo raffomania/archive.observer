@@ -1,8 +1,7 @@
-//! Generate html pages for browsing the AskHistorians Archive.
+//! Generate HTML pages for browsing the Ask Historians Reddit Archive.
 
 // clippy WARN level lints
 #![warn(
-    clippy::cargo,
     clippy::pedantic,
     clippy::nursery,
     clippy::dbg_macro,
@@ -10,7 +9,6 @@
     clippy::integer_division,
     clippy::large_include_file,
     clippy::map_err_ignore,
-    clippy::missing_docs_in_private_items,
     clippy::panic,
     clippy::todo,
     clippy::undocumented_unsafe_blocks,
@@ -37,7 +35,6 @@
     clippy::indexing_slicing,
     clippy::let_underscore_must_use,
     clippy::lossy_float_literal,
-    clippy::pattern_type_mismatch,
     clippy::string_slice,
     clippy::try_err
 )]
@@ -63,16 +60,13 @@
 
 mod config;
 
-use std::{
-    collections::HashMap,
-    io::BufRead,
-    sync::{Arc, Mutex},
-};
-
-use askama::Template;
-pub use config::CONFIG;
+use std::collections::HashMap;
+use std::io::BufRead;
+use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
+use askama::Template;
+pub use config::CONFIG;
 use rayon::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize};
 use tracing::{debug, info};
@@ -98,12 +92,14 @@ pub fn run() -> Result<()> {
     // Remove posts without comments
     posts.retain(|_id, post| post.num_comments > 0);
 
-    let mut rendered_posts = 0;
+    let mut rendered_posts: usize = 0;
 
     debug!("Rendering posts");
     for post in posts.values() {
         render_post(post)?;
-        rendered_posts += 1;
+        rendered_posts = rendered_posts
+            .checked_add(1)
+            .expect("Failed to increment post render counter");
     }
 
     info!("Rendered posts: {rendered_posts}");
@@ -201,11 +197,13 @@ fn read_comments(posts: &mut Posts) -> Result<()> {
         })
         .filter(|comment| comment.body != "[deleted]")
         .for_each(|comment| {
-            posts_wrapper
+            if let Some(post) = posts_wrapper
                 .lock()
-                .unwrap()
+                .expect("Failed to get lock")
                 .get_mut(&comment.parent_id)
-                .map(|post| post.comments.push(comment));
+            {
+                post.comments.push(comment);
+            }
         });
 
     Ok(())

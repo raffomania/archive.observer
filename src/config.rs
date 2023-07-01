@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 /// Configuration variables for the crate.
 #[derive(Deserialize, Debug)]
-pub struct Config {}
+pub struct Config;
 
 /// Access to parsed configuration.
 pub static CONFIG: Lazy<Config> = Lazy::new(|| envy::from_env().expect("some env vars missing"));

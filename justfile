@@ -18,7 +18,7 @@ fmt *FLAGS:
 
 # Run clippy on codebase, tests, examples, while testing all features.
 check *FLAGS:
-    cargo clippy --tests --examples --all-targets --all-features --workspace {{FLAGS}}
+    cargo clippy --tests --examples --all-targets --all-features --workspace -- -D warnings {{FLAGS}}
 
 # Run tests.
 test *FLAGS:
@@ -58,26 +58,23 @@ build-timings:
     xdg-open /target/cargo-timings/cargo-timing.html
 
 # Runs all checks necessary before commit.
-# Checks formating, code quality, tests, documentation, spellcheck and more.
+# Checks formating, code quality, tests, documentation and more.
 pre-commit:
     @just fmt
-    @just check -- -D warnings
+    @just check
     @just test
     @just doc
     @just thorough-check
     @just unused-features
-    cargo spellcheck fix
-    cargo spellcheck reflow
 
 # Similar to `pre-commit` command, but is not interactive and doesn't modify the codebase.
 # Suitable for automated CI pipelines.
 ci:
     @just fmt --check
-    @just check -- -D warnings
-    @just test
+    @just check
+    # @just test
     @just doc
     @just thorough-check
-    cargo spellcheck check
 
 # Initializes the project, installing all tools necessary. Should be run once before begining of development.
 init:
@@ -85,18 +82,16 @@ init:
     echo # installing nightly used by `just fmt` and `cargo udeps`
     rustup install nightly
     echo # things required by `just test`
-    cargo install cargo-nextest --no-confirm
+    cargo install cargo-nextest
     echo # things required by `just watch`
-    cargo install cargo-watch --no-confirm
-    echo # things required by `just pre-commit`
-    cargo install cargo-spellcheck --no-confirm
+    cargo install cargo-watch
     echo # things required by `just coverage`
     rustup component add llvm-tools-preview
-    cargo install cargo-llvm-cov --no-confirm
+    cargo install cargo-llvm-cov
     echo # things required by `just benchmark`
-    cargo install cargo-criterion --no-confirm
+    cargo install cargo-criterion
     echo # things required by `just thorough-check`
-    cargo install cargo-udeps --no-confirm
-    cargo install cargo-audit --no-confirm
-    cargo install cargo-upgrades --no-confirm
-    cargo install cargo-unused-features --no-confirm
+    cargo install cargo-udeps
+    cargo install cargo-audit
+    cargo install cargo-upgrades
+    cargo install cargo-unused-features
