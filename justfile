@@ -2,8 +2,9 @@
 set dotenv-load := true
 
 # Build and run.
-run *FLAGS: css
+run *FLAGS:
     cargo run {{FLAGS}}
+    just css
 
 watch *FLAGS:
     cargo watch -x run -i output -s 'just css'

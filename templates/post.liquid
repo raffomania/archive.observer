@@ -5,6 +5,9 @@
   <div class="prose mt-2">
     <h2>{{ title }}</h2>
     <p>{{ selftext_html }}</p>
+    {% for comment in comments %}
+      <p class="pt-4 border-t border-slate">{{ comment.body | newline_to_br }}</p>
+    {% endfor %}
   </div>
 {% endcapture %}
 
