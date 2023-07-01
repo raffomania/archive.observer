@@ -32,6 +32,8 @@ just list
 
 ## Similar projects
 
+The [redarc viewer](https://github.com/yakabuff/redarc) allows browsing pushshift dumps, but has a different UI than what I had in mind. It's also not a static site.
+
 ## License
 
 This project is licensed under either of:
