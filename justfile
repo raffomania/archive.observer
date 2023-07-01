@@ -81,6 +81,7 @@ ci:
 
 # Initializes the project, installing all tools necessary. Should be run once before begining of development.
 init:
+    npm install
     echo # installing nightly used by `just fmt` and `cargo udeps`
     rustup install nightly
     echo # things required by `just test`

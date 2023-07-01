@@ -4,7 +4,7 @@
 
 # Development
 
-Requires `just` and `rustup` to bootstrap all tools and configuration.
+Requires `just`, `rustup` and `npm` to bootstrap all tools and configuration.
 ```bash
 cargo install just
 just init # setup repo, install required tools
