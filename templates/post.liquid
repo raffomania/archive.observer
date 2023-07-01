@@ -4,7 +4,7 @@
   {% render 'nav' %}
   <div class="prose mt-2">
     <h2>{{ title }}</h2>
-    <p>{{ selftext_html }}</p>
+    <div class="ml-8 mb-8">{{ selftext_html }}</div>
     {% for comment in comments %}
       <p class="pt-4 border-t border-slate">{{ comment.body | newline_to_br }}</p>
     {% endfor %}

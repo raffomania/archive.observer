@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ["./output/**/*.html"],
+    // deliberately ignore output here to speed up the process
+    content: ["./templates/**/*.liquid"],
     theme: {
         extend: {},
     },
