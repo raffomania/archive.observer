@@ -87,7 +87,7 @@ pub fn run() -> Result<()> {
     // Calculate real number of comments
     posts
         .iter_mut()
-        .for_each(|(_id, p)| p.num_comments = p.comments.len());
+        .for_each(|(_id, p)| p.num_comments = p.comments.len() as i64);
 
     // Remove posts without comments
     posts.retain(|_id, post| post.num_comments > 0);
@@ -115,8 +115,8 @@ struct Post {
     title: String,
     id: PostId,
     selftext: String,
-    num_comments: usize,
-    #[serde(deserialize_with = "deserialize_null_default")]
+    num_comments: i64,
+    #[serde(default, deserialize_with = "deserialize_null_default")]
     selftext_html: String,
     #[serde(default)]
     comments: Vec<Comment>,
