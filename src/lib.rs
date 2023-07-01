@@ -79,11 +79,14 @@ use tracing::{debug, info};
 
 #[tracing::instrument]
 pub fn run() -> Result<()> {
+    debug!("Reading posts");
     let mut posts = read_posts();
     info!("Posts w/ num_comments > 0: {}", posts.len());
 
+    debug!("Reading comments");
     read_comments(&mut posts)?;
 
+    debug!("Cleaning up comments");
     std::fs::remove_dir_all("output")?;
     std::fs::create_dir_all("output/posts")?;
 
@@ -97,6 +100,7 @@ pub fn run() -> Result<()> {
 
     let mut rendered_posts = 0;
 
+    debug!("Rendering posts");
     for post in posts.values() {
         render_post(post)?;
         rendered_posts += 1;
@@ -104,6 +108,7 @@ pub fn run() -> Result<()> {
 
     info!("Rendered posts: {rendered_posts}");
 
+    debug!("Rendering index");
     render_index(posts.values())?;
 
     Ok(())
@@ -133,6 +138,7 @@ where
 type PostId = String;
 type Posts = HashMap<PostId, Post>;
 
+#[tracing::instrument]
 fn read_posts() -> Posts {
     let lines = std::io::BufReader::new(
         std::fs::File::open("submissions.json").expect("Could not read submissions.json"),
@@ -172,6 +178,7 @@ struct Comment {
     body: String,
 }
 
+#[tracing::instrument]
 fn read_comments(posts: &mut Posts) -> Result<()> {
     let lines = std::io::BufReader::new(
         std::fs::File::open("comments.json").context("Could not read comments.json")?,
