@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 
 fn run(c: &mut Criterion) {
     let mut group = c.benchmark_group("run");
-    group.sample_size(20);
+    group.sample_size(10);
     group.bench_function("run", |b| {
         b.iter(|| aharc::run().unwrap());
     });

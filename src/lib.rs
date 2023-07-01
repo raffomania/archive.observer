@@ -63,7 +63,11 @@
 
 mod config;
 
-use std::{collections::HashMap, io::BufRead};
+use std::{
+    collections::HashMap,
+    io::BufRead,
+    sync::{Arc, Mutex},
+};
 
 pub use config::CONFIG;
 
@@ -73,24 +77,26 @@ use serde::{Deserialize, Serialize};
 
 pub fn run() -> Result<()> {
     let mut posts = read_posts()?;
+    println!("Posts w/ num_comments > 0: {}", posts.len());
 
-    let mut comments = read_comments(&mut posts)?;
+    read_comments(&mut posts)?;
 
-    for mut post in posts.values_mut() {
-        if let Some(comment_list) = comments.remove(&post.id) {
-            post.comments = Some(comment_list)
-        } else {
-            post.comments = Some(Vec::new())
-        }
-    }
-
+    std::fs::remove_dir_all("output")?;
     std::fs::create_dir_all("output/posts")?;
 
     let parser = make_template_parser()?;
 
-    for post in posts.values() {
-        render_post(&parser, post)?;
+    let posts_to_render = posts.values().filter(|post| post.comments.len() > 0);
+
+    let mut rendered_posts = 0;
+
+    let template = parser.parse_file("templates/post.liquid")?;
+    for post in posts_to_render {
+        render_post(&template, post)?;
+        rendered_posts += 1;
     }
+
+    println!("Rendered posts: {rendered_posts}");
 
     render_index(&parser, posts)?;
 
@@ -100,12 +106,12 @@ pub fn run() -> Result<()> {
 #[derive(Serialize, Deserialize, Debug)]
 struct Post {
     title: String,
-    #[serde(rename(deserialize = "name"))]
     id: PostId,
     selftext: String,
-    num_comments: u64,
+    num_comments: i64,
     selftext_html: Option<String>,
-    comments: Option<Vec<Comment>>,
+    #[serde(default)]
+    comments: Vec<Comment>,
 }
 
 type PostId = String;
@@ -116,29 +122,24 @@ fn read_posts() -> Result<Posts> {
         std::fs::File::open("submissions.json").context("Could not read submissions.json")?,
     )
     .lines()
-    .take(500)
+    .take(5_000)
     .collect::<Vec<_>>();
 
     lines
         .into_par_iter()
-        .map(|maybe_line| {
-            maybe_line
-                .context("could not read line")
-                .and_then(|s| serde_json::from_str(&s).context("could not deserialize"))
+        .map(|maybe_line| -> Post {
+            let line = maybe_line.expect("could not read line");
+
+            serde_json::from_str(&line)
+                .context(line)
+                .expect("could not deserialize")
         })
-        .filter(|maybe_post| {
-            maybe_post
-                .as_ref()
-                .map(|post: &Post| post.num_comments > 0)
-                .unwrap_or(true)
-        })
+        .filter(|post| post.num_comments > 0)
         .map(process_post)
         .collect::<Result<_, _>>()
 }
 
-fn process_post(post: Result<Post>) -> Result<(PostId, Post)> {
-    let post = post?;
-
+fn process_post(post: Post) -> Result<(PostId, Post)> {
     let selftext_html = post
         .selftext_html
         .as_ref()
@@ -156,14 +157,11 @@ fn process_post(post: Result<Post>) -> Result<(PostId, Post)> {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Comment {
-    link_id: String,
     parent_id: String,
     body: String,
 }
 
-type Comments = HashMap<PostId, Vec<Comment>>;
-
-fn read_comments(posts: &mut Posts) -> Result<Comments> {
+fn read_comments(posts: &mut Posts) -> Result<()> {
     let lines = std::io::BufReader::new(
         std::fs::File::open("comments.json").context("Could not read comments.json")?,
     )
@@ -171,46 +169,27 @@ fn read_comments(posts: &mut Posts) -> Result<Comments> {
     .take(50_000)
     .collect::<Vec<_>>();
 
-    let comments = lines
+    let posts_wrapper = Arc::new(Mutex::new(posts));
+
+    lines
         .into_par_iter()
-        .map(
-            |maybe_line: Result<String, std::io::Error>| -> Result<Comment> {
-                let line = maybe_line.context("could not read line")?;
-                let comment: Comment =
-                    serde_json::from_str(&line).context("could not deserialize comment")?;
+        .map(|maybe_line: Result<String, std::io::Error>| -> Comment {
+            let line = maybe_line.expect("could not read line");
 
-                Ok(comment)
-            },
-        )
-        .filter(|comment| {
+            let mut comment: Comment =
+                serde_json::from_str(&line).expect("could not deserialize comment");
+            comment.parent_id = comment.parent_id.replace("t3_", "");
             comment
-                .as_ref()
-                .map(|c| posts.contains_key(&c.parent_id))
-                .unwrap_or(true)
         })
-        .try_fold(
-            HashMap::new,
-            |mut comments: Comments, comment| -> Result<Comments> {
-                let comment = comment?;
-                comments
-                    .entry(comment.link_id.clone())
-                    .or_insert(Vec::new())
-                    .push(comment);
+        .for_each(|comment| {
+            posts_wrapper
+                .lock()
+                .unwrap()
+                .get_mut(&comment.parent_id)
+                .map(|post| post.comments.push(comment));
+        });
 
-                Ok(comments)
-            },
-        )
-        .try_reduce(HashMap::new, |mut comments, other_comments| {
-            for (link_id, mut new_comment_list) in other_comments {
-                comments
-                    .entry(link_id)
-                    .or_insert(Vec::new())
-                    .append(&mut new_comment_list)
-            }
-            Ok(comments)
-        })?;
-
-    Ok(comments)
+    Ok(())
 }
 
 fn make_template_parser() -> Result<liquid::Parser> {
@@ -244,9 +223,7 @@ fn render_index(parser: &liquid::Parser, posts: Posts) -> Result<()> {
     Ok(())
 }
 
-fn render_post(parser: &liquid::Parser, post: &Post) -> Result<()> {
-    let template = parser.parse_file("templates/post.liquid")?;
-
+fn render_post(template: &liquid::Template, post: &Post) -> Result<()> {
     let globals = liquid::to_object(&post)?;
 
     let output = template.render(&globals)?;
