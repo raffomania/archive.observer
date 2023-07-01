@@ -69,11 +69,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use askama::Template;
 pub use config::CONFIG;
 
 use anyhow::{Context, Result};
 use rayon::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 pub fn run() -> Result<()> {
     let mut posts = read_posts();
@@ -83,8 +84,6 @@ pub fn run() -> Result<()> {
 
     std::fs::remove_dir_all("output")?;
     std::fs::create_dir_all("output/posts")?;
-
-    let parser = make_template_parser()?;
 
     // Calculate real number of comments
     posts
@@ -96,15 +95,14 @@ pub fn run() -> Result<()> {
 
     let mut rendered_posts = 0;
 
-    let template = parser.parse_file("templates/post.liquid")?;
     for post in posts.values() {
-        render_post(&template, post)?;
+        render_post(post)?;
         rendered_posts += 1;
     }
 
     println!("Rendered posts: {rendered_posts}");
 
-    render_index(&parser, posts.values())?;
+    render_index(posts.values())?;
 
     Ok(())
 }
@@ -115,9 +113,19 @@ struct Post {
     id: PostId,
     selftext: String,
     num_comments: usize,
-    selftext_html: Option<String>,
+    #[serde(deserialize_with = "deserialize_null_default")]
+    selftext_html: String,
     #[serde(default)]
     comments: Vec<Comment>,
+}
+
+fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    T: Default + Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    let opt = Option::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
 }
 
 type PostId = String;
@@ -148,11 +156,7 @@ fn read_posts() -> Posts {
 }
 
 fn unescape_html(post: Post) -> Post {
-    let selftext_html = post
-        .selftext_html
-        .as_ref()
-        .map(html_escape::decode_html_entities)
-        .map(String::from);
+    let selftext_html = html_escape::decode_html_entities(&post.selftext_html).to_string();
 
     Post {
         selftext_html,
@@ -198,44 +202,37 @@ fn read_comments(posts: &mut Posts) -> Result<()> {
     Ok(())
 }
 
-fn make_template_parser() -> Result<liquid::Parser> {
-    let mut partial_source = liquid::partials::InMemorySource::new();
-
-    partial_source.add("head", std::fs::read_to_string("templates/head.liquid")?);
-    partial_source.add("nav", std::fs::read_to_string("templates/nav.liquid")?);
-    partial_source.add(
-        "layout",
-        std::fs::read_to_string("templates/layout.liquid")?,
-    );
-
-    let partials = liquid::partials::EagerCompiler::new(partial_source);
-
-    liquid::ParserBuilder::with_stdlib()
-        .partials(partials)
-        .build()
-        .context("Could not build liquid parser")
+#[derive(Template)]
+#[template(path = "index.jinja")]
+struct IndexTemplate<'a> {
+    posts: Vec<&'a Post>,
 }
 
-fn render_index<'a, P>(parser: &liquid::Parser, posts: P) -> Result<()>
+fn render_index<'a, P>(posts: P) -> Result<()>
 where
     P: Iterator<Item = &'a Post>,
 {
-    let template = parser.parse_file("templates/index.liquid")?;
+    let template = IndexTemplate {
+        posts: posts.collect(),
+    };
 
-    let globals =
-        liquid::object!({ "posts": liquid::model::to_value(&posts.collect::<Vec<_>>())? });
-
-    let output = template.render(&globals)?;
+    let output = template.render()?;
 
     std::fs::write("output/index.html", output)?;
 
     Ok(())
 }
 
-fn render_post(template: &liquid::Template, post: &Post) -> Result<()> {
-    let globals = liquid::to_object(&post)?;
+#[derive(Template)]
+#[template(path = "post.jinja")]
+struct PostTemplate<'a> {
+    post: &'a Post,
+}
 
-    let output = template.render(&globals)?;
+fn render_post(post: &Post) -> Result<()> {
+    let template = PostTemplate { post };
+
+    let output = template.render()?;
     let name = &post.id;
     std::fs::write(format!("output/posts/{name}.html"), output)?;
 

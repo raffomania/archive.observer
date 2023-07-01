@@ -1,0 +1,13 @@
+{% extends "layout.jinja" %}
+
+{% block content %}
+
+{% include "nav.jinja" %}
+<div class="prose mt-2">
+  <h2>{{ post.title }}</h2>
+  <div class="ml-8 mb-8">{{ post.selftext_html|safe }}</div>
+  {% for comment in post.comments %}
+  <div class="pt-4 border-t border-slate">{{ comment.body|linebreaks|safe }}</div>
+  {% endfor %}
+</div>
+{% endblock %}
