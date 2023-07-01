@@ -75,10 +75,12 @@ pub use config::CONFIG;
 use anyhow::{Context, Result};
 use rayon::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize};
+use tracing::{debug, info};
 
+#[tracing::instrument]
 pub fn run() -> Result<()> {
     let mut posts = read_posts();
-    println!("Posts w/ num_comments > 0: {}", posts.len());
+    info!("Posts w/ num_comments > 0: {}", posts.len());
 
     read_comments(&mut posts)?;
 
@@ -100,7 +102,7 @@ pub fn run() -> Result<()> {
         rendered_posts += 1;
     }
 
-    println!("Rendered posts: {rendered_posts}");
+    info!("Rendered posts: {rendered_posts}");
 
     render_index(posts.values())?;
 
