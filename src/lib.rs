@@ -85,9 +85,13 @@ pub fn run() -> Result<()> {
     std::fs::create_dir_all("output/posts")?;
 
     // Calculate real number of comments
-    posts
-        .iter_mut()
-        .for_each(|(_id, p)| p.num_comments = p.comments.len() as i64);
+    for post in posts.values_mut() {
+        post.num_comments = post
+            .comments
+            .len()
+            .try_into()
+            .expect("failed to convert number of comments to i64");
+    }
 
     // Remove posts without comments
     posts.retain(|_id, post| post.num_comments > 0);
