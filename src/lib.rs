@@ -176,6 +176,7 @@ fn unescape_html(post: Post) -> Post {
 struct Comment {
     parent_id: String,
     body: String,
+    author: String,
 }
 
 #[tracing::instrument]
@@ -199,7 +200,11 @@ fn read_comments(posts: &mut Posts) -> Result<()> {
             comment.parent_id = comment.parent_id.replace("t3_", "");
             comment
         })
-        .filter(|comment| comment.body != "[deleted]")
+        .filter(|comment| {
+            comment.body != "[deleted]"
+                && comment.body != "[removed]"
+                && comment.author != "AutoModerator"
+        })
         .for_each(|comment| {
             if let Some(post) = posts_wrapper
                 .lock()
