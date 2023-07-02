@@ -1,6 +1,8 @@
+# dependency managers
 target
 node_modules
 
+# local configuration
 .env
 
 # data dumps
@@ -8,4 +10,8 @@ node_modules
 submissions*
 comments*
 
+# rendered output
 output
+
+# Local Netlify folder
+.netlify

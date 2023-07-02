@@ -95,3 +95,7 @@ init:
     cargo install cargo-audit
     cargo install cargo-upgrades
     cargo install cargo-unused-features
+
+# Build the project, run it, and push the output to netlify.
+deploy: run
+    netlify deploy --dir output --prod
