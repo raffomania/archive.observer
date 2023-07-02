@@ -5,6 +5,8 @@
 # Development
 
 Requires `just`, `rustup` and `npm` to bootstrap all tools and configuration.
+For deployment, you need the `netlify` CLI installed.
+
 ```bash
 cargo install just
 just init # setup repo, install required tools
