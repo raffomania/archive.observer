@@ -58,10 +58,11 @@
     clippy::verbose_file_reads
 )]
 
-mod config;
+pub mod config;
 
 use std::collections::HashMap;
 use std::io::BufRead;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
@@ -73,12 +74,19 @@ use tracing::{debug, info};
 
 #[tracing::instrument]
 pub fn run() -> Result<()> {
-    debug!("Reading posts");
-    let mut posts = read_posts();
-    info!("Posts w/ num_comments > 0: {}", posts.len());
+    let limit = CONFIG
+        .limit_posts
+        .map(|x| x.to_string())
+        .unwrap_or("all".to_string());
 
-    debug!("Reading comments");
-    read_comments(&mut posts)?;
+    let posts_path = &CONFIG.submissions;
+    debug!("Reading {limit} posts from {posts_path:?}");
+    let mut posts = read_posts(posts_path);
+    info!("Posts with num_comments > 0: {}", posts.len());
+
+    let comments_path = &CONFIG.comments;
+    debug!("Reading all comments from {comments_path:?}");
+    read_comments(comments_path, &mut posts)?;
 
     debug!("Cleaning up comments");
     std::fs::remove_dir_all("output")?;
@@ -139,13 +147,15 @@ type PostId = String;
 type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
-fn read_posts() -> Posts {
-    let lines = std::io::BufReader::new(
-        std::fs::File::open("submissions.json").expect("Could not read submissions.json"),
-    )
-    .lines()
-    .take(5_000)
-    .collect::<Vec<_>>();
+fn read_posts(path: &PathBuf) -> Posts {
+    let lines =
+        std::io::BufReader::new(std::fs::File::open(path).expect("Could not read {path:?}"))
+            .lines();
+    let lines: Vec<_> = if let Some(limit) = CONFIG.limit_posts {
+        lines.take(limit).collect()
+    } else {
+        lines.collect()
+    };
 
     lines
         .into_par_iter()
@@ -180,13 +190,11 @@ struct Comment {
 }
 
 #[tracing::instrument]
-fn read_comments(posts: &mut Posts) -> Result<()> {
-    let lines = std::io::BufReader::new(
-        std::fs::File::open("comments.json").context("Could not read comments.json")?,
-    )
-    .lines()
-    .take(50_000)
-    .collect::<Vec<_>>();
+fn read_comments(path: &PathBuf, posts: &mut Posts) -> Result<()> {
+    let lines =
+        std::io::BufReader::new(std::fs::File::open(path).context("Could not read {path:?}")?)
+            .lines()
+            .collect::<Vec<_>>();
 
     let posts_wrapper = Arc::new(Mutex::new(posts));
 

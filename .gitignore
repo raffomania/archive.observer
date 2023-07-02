@@ -6,6 +6,7 @@ node_modules
 .env
 
 # data dumps
+input/*
 *.zst
 submissions*
 comments*
