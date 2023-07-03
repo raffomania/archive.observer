@@ -74,19 +74,10 @@ use tracing::{debug, info};
 
 #[tracing::instrument]
 pub fn run(config: Config) -> Result<()> {
-    let limit = config
-        .limit_posts
-        .map(|x| x.to_string())
-        .unwrap_or("all".to_string());
-
-    let posts_path = &config.submissions;
-    debug!("Reading {limit} posts from {posts_path:?}");
-    let mut posts = read_posts(posts_path, config.limit_posts);
+    let mut posts = read_posts(&config.submissions, config.limit_posts);
     info!("Posts with num_comments > 0: {}", posts.len());
 
-    let comments_path = &config.comments;
-    debug!("Reading all comments from {comments_path:?}");
-    read_comments(comments_path, &mut posts)?;
+    read_comments(&config.comments, &mut posts, config.limit_posts)?;
 
     debug!("Cleaning up comments");
     std::fs::remove_dir_all("output")?;
@@ -148,6 +139,10 @@ type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
 fn read_posts(path: &PathBuf, limit: Option<usize>) -> Posts {
+    let limit_description = limit.map(|x| x.to_string()).unwrap_or("all".to_string());
+
+    debug!("Reading {limit_description} posts from {path:?}");
+
     let lines =
         std::io::BufReader::new(std::fs::File::open(path).expect("Could not read {path:?}"))
             .lines();
@@ -189,12 +184,21 @@ struct Comment {
     author: String,
 }
 
-#[tracing::instrument]
-fn read_comments(path: &PathBuf, posts: &mut Posts) -> Result<()> {
+#[tracing::instrument(skip(posts))]
+fn read_comments(path: &PathBuf, posts: &mut Posts, limit_posts: Option<usize>) -> Result<()> {
+    let limit = limit_posts.map(|x| x * 5);
+    let limit_description = limit.map(|x| x.to_string()).unwrap_or("all".to_string());
+
+    debug!("Reading {limit_description} comments from {path:?}");
     let lines =
         std::io::BufReader::new(std::fs::File::open(path).context("Could not read {path:?}")?)
-            .lines()
-            .collect::<Vec<_>>();
+            .lines();
+
+    let lines: Vec<_> = if let Some(limit) = limit {
+        lines.take(limit).collect()
+    } else {
+        lines.collect()
+    };
 
     let posts_wrapper = Arc::new(Mutex::new(posts));
 
