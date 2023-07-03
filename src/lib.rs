@@ -59,6 +59,7 @@
 )]
 
 pub mod config;
+mod render;
 
 use std::collections::HashMap;
 use std::io::BufRead;
@@ -66,10 +67,9 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
-use askama::Template;
 use config::Config;
 use rayon::prelude::*;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
 #[tracing::instrument]
@@ -79,36 +79,25 @@ pub fn run(config: Config) -> Result<()> {
 
     read_comments(&config.comments, &mut posts, config.limit_posts)?;
 
-    debug!("Cleaning up comments");
     std::fs::remove_dir_all("output")?;
     std::fs::create_dir_all("output/posts")?;
 
-    // Calculate real number of comments
-    for post in posts.values_mut() {
-        post.num_comments = post
-            .comments
-            .len()
-            .try_into()
-            .expect("failed to convert number of comments to i64");
-    }
+    debug!("Cleaning up read data");
+    let posts_to_render = posts
+        .into_values()
+        .par_bridge()
+        .filter(|p| p.comments.len() > 0)
+        .map(render::Post::from)
+        .collect::<Vec<_>>();
 
-    // Remove posts without comments
-    posts.retain(|_id, post| post.num_comments > 0);
-
-    let mut rendered_posts: usize = 0;
-
-    debug!("Rendering posts");
-    for post in posts.values() {
-        render_post(post)?;
-        rendered_posts = rendered_posts
-            .checked_add(1)
-            .expect("Failed to increment post render counter");
-    }
-
-    info!("Rendered posts: {rendered_posts}");
+    // let rendered_posts = posts_to_render.len();
+    // debug!("Rendering {rendered_posts} posts");
+    posts_to_render.par_iter().for_each(|post| {
+        render::render_post(&post).unwrap();
+    });
 
     debug!("Rendering index");
-    render_index(posts.values())?;
+    render::render_index(posts_to_render)?;
 
     Ok(())
 }
@@ -119,19 +108,33 @@ struct Post {
     id: PostId,
     selftext: String,
     num_comments: i64,
-    #[serde(default, deserialize_with = "deserialize_null_default")]
-    selftext_html: String,
+    selftext_html: Option<String>,
     #[serde(default)]
     comments: Vec<Comment>,
 }
 
-fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-where
-    T: Default + Deserialize<'de>,
-    D: Deserializer<'de>,
-{
-    let opt = Option::deserialize(deserializer)?;
-    Ok(opt.unwrap_or_default())
+impl From<Post> for render::Post {
+    fn from(post: Post) -> Self {
+        let real_num_comments = post.comments.len();
+
+        let selftext_html = post.selftext_html.unwrap_or("".to_string());
+
+        let selftext_html = html_escape::decode_html_entities(&selftext_html).to_string();
+
+        let comments = post
+            .comments
+            .into_iter()
+            .map(render::Comment::from)
+            .collect();
+
+        render::Post {
+            real_num_comments,
+            selftext_html,
+            id: post.id,
+            title: post.title,
+            comments,
+        }
+    }
 }
 
 type PostId = String;
@@ -164,17 +167,7 @@ fn read_posts(path: &PathBuf, limit: Option<usize>) -> Posts {
             (post.id.clone(), post)
         })
         .filter(|(_id, post)| post.num_comments > 0)
-        .map(|(id, post)| (id, unescape_html(post)))
         .collect()
-}
-
-fn unescape_html(post: Post) -> Post {
-    let selftext_html = html_escape::decode_html_entities(&post.selftext_html).to_string();
-
-    Post {
-        selftext_html,
-        ..post
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -182,6 +175,12 @@ struct Comment {
     parent_id: String,
     body: String,
     author: String,
+}
+
+impl From<Comment> for render::Comment {
+    fn from(comment: Comment) -> Self {
+        render::Comment { body: comment.body }
+    }
 }
 
 #[tracing::instrument(skip(posts))]
@@ -226,43 +225,6 @@ fn read_comments(path: &PathBuf, posts: &mut Posts, limit_posts: Option<usize>) 
                 post.comments.push(comment);
             }
         });
-
-    Ok(())
-}
-
-#[derive(Template)]
-#[template(path = "index.jinja")]
-struct IndexTemplate<'a> {
-    posts: Vec<&'a Post>,
-}
-
-fn render_index<'a, P>(posts: P) -> Result<()>
-where
-    P: Iterator<Item = &'a Post>,
-{
-    let template = IndexTemplate {
-        posts: posts.collect(),
-    };
-
-    let output = template.render()?;
-
-    std::fs::write("output/index.html", output)?;
-
-    Ok(())
-}
-
-#[derive(Template)]
-#[template(path = "post.jinja")]
-struct PostTemplate<'a> {
-    post: &'a Post,
-}
-
-fn render_post(post: &Post) -> Result<()> {
-    let template = PostTemplate { post };
-
-    let output = template.render()?;
-    let name = &post.id;
-    std::fs::write(format!("output/posts/{name}.html"), output)?;
 
     Ok(())
 }

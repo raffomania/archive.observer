@@ -1,5 +1,6 @@
 use anyhow::Result;
 use askama::Template;
+use rayon::prelude::ParallelIterator;
 
 pub struct Comment {
     pub body: String,
@@ -15,17 +16,12 @@ pub struct Post {
 
 #[derive(Template)]
 #[template(path = "index.jinja")]
-struct IndexTemplate<'a> {
-    posts: Vec<&'a Post>,
+struct IndexTemplate {
+    posts: Vec<Post>,
 }
 
-pub fn render_index<'a, P>(posts: P) -> Result<()>
-where
-    P: Iterator<Item = &'a Post>,
-{
-    let template = IndexTemplate {
-        posts: posts.collect(),
-    };
+pub fn render_index(posts: Vec<Post>) -> Result<()> {
+    let template = IndexTemplate { posts };
 
     let output = template.render()?;
 
