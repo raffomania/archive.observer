@@ -18,7 +18,6 @@
 // clippy WARN level lints, that can be upgraded to DENY if preferred
 #![warn(
     clippy::float_arithmetic,
-    clippy::integer_arithmetic,
     clippy::modulo_arithmetic,
     clippy::as_conversions,
     clippy::assertions_on_result_states,
@@ -49,7 +48,6 @@
     clippy::self_named_module_files,
     clippy::separated_literal_suffix,
     clippy::shadow_unrelated,
-    clippy::str_to_string,
     clippy::string_add,
     clippy::string_to_string,
     clippy::unnecessary_self_imports,
@@ -86,18 +84,18 @@ pub fn run(config: Config) -> Result<()> {
     let posts_to_render = posts
         .into_values()
         .par_bridge()
-        .filter(|p| p.comments.len() > 0)
+        .filter(|p| !p.comments.is_empty())
         .map(render::Post::from)
         .collect::<Vec<_>>();
 
     // let rendered_posts = posts_to_render.len();
     // debug!("Rendering {rendered_posts} posts");
     posts_to_render.par_iter().for_each(|post| {
-        render::render_post(&post).unwrap();
+        render::post(post).expect("Failed to render post");
     });
 
     debug!("Rendering index");
-    render::render_index(posts_to_render)?;
+    render::index(posts_to_render)?;
 
     Ok(())
 }
@@ -117,7 +115,7 @@ impl From<Post> for render::Post {
     fn from(post: Post) -> Self {
         let real_num_comments = post.comments.len();
 
-        let selftext_html = post.selftext_html.unwrap_or("".to_string());
+        let selftext_html = post.selftext_html.unwrap_or_default();
 
         let selftext_html = html_escape::decode_html_entities(&selftext_html).to_string();
 
@@ -127,7 +125,7 @@ impl From<Post> for render::Post {
             .map(render::Comment::from)
             .collect();
 
-        render::Post {
+        Self {
             real_num_comments,
             selftext_html,
             id: post.id,
@@ -142,7 +140,7 @@ type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
 fn read_posts(path: &PathBuf, limit: Option<usize>) -> Posts {
-    let limit_description = limit.map(|x| x.to_string()).unwrap_or("all".to_string());
+    let limit_description = limit.map_or("all".to_string(), |x| x.to_string());
 
     debug!("Reading {limit_description} posts from {path:?}");
 
@@ -179,14 +177,14 @@ struct Comment {
 
 impl From<Comment> for render::Comment {
     fn from(comment: Comment) -> Self {
-        render::Comment { body: comment.body }
+        Self { body: comment.body }
     }
 }
 
 #[tracing::instrument(skip(posts))]
 fn read_comments(path: &PathBuf, posts: &mut Posts, limit_posts: Option<usize>) -> Result<()> {
     let limit = limit_posts.map(|x| x * 5);
-    let limit_description = limit.map(|x| x.to_string()).unwrap_or("all".to_string());
+    let limit_description = limit.map_or("all".to_string(), |x| x.to_string());
 
     debug!("Reading {limit_description} comments from {path:?}");
     let lines =

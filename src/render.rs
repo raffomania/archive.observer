@@ -1,6 +1,5 @@
 use anyhow::Result;
 use askama::Template;
-use rayon::prelude::ParallelIterator;
 
 pub struct Comment {
     pub body: String,
@@ -20,7 +19,7 @@ struct IndexTemplate {
     posts: Vec<Post>,
 }
 
-pub fn render_index(posts: Vec<Post>) -> Result<()> {
+pub fn index(posts: Vec<Post>) -> Result<()> {
     let template = IndexTemplate { posts };
 
     let output = template.render()?;
@@ -36,7 +35,7 @@ struct PostTemplate<'a> {
     post: &'a Post,
 }
 
-pub fn render_post(post: &Post) -> Result<()> {
+pub fn post(post: &Post) -> Result<()> {
     let template = PostTemplate { post };
 
     let output = template.render()?;
