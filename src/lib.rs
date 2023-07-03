@@ -67,24 +67,24 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
 use askama::Template;
-pub use config::CONFIG;
+use config::Config;
 use rayon::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize};
 use tracing::{debug, info};
 
 #[tracing::instrument]
-pub fn run() -> Result<()> {
-    let limit = CONFIG
+pub fn run(config: Config) -> Result<()> {
+    let limit = config
         .limit_posts
         .map(|x| x.to_string())
         .unwrap_or("all".to_string());
 
-    let posts_path = &CONFIG.submissions;
+    let posts_path = &config.submissions;
     debug!("Reading {limit} posts from {posts_path:?}");
-    let mut posts = read_posts(posts_path);
+    let mut posts = read_posts(posts_path, config.limit_posts);
     info!("Posts with num_comments > 0: {}", posts.len());
 
-    let comments_path = &CONFIG.comments;
+    let comments_path = &config.comments;
     debug!("Reading all comments from {comments_path:?}");
     read_comments(comments_path, &mut posts)?;
 
@@ -147,11 +147,11 @@ type PostId = String;
 type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
-fn read_posts(path: &PathBuf) -> Posts {
+fn read_posts(path: &PathBuf, limit: Option<usize>) -> Posts {
     let lines =
         std::io::BufReader::new(std::fs::File::open(path).expect("Could not read {path:?}"))
             .lines();
-    let lines: Vec<_> = if let Some(limit) = CONFIG.limit_posts {
+    let lines: Vec<_> = if let Some(limit) = limit {
         lines.take(limit).collect()
     } else {
         lines.collect()

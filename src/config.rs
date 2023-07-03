@@ -6,7 +6,6 @@ Data is sourced from environment variables.
 use std::path::PathBuf;
 
 use clap::Parser;
-use once_cell::sync::Lazy;
 use serde::Deserialize;
 
 /// Configuration variables for the crate.
@@ -24,6 +23,3 @@ pub struct Config {
     #[arg(env, long)]
     pub limit_posts: Option<usize>,
 }
-
-/// Access to parsed configuration.
-pub static CONFIG: Lazy<Config> = Lazy::new(|| Config::parse());
