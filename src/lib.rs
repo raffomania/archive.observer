@@ -65,6 +65,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
+use chrono::{DateTime, TimeZone, Utc};
 use config::Config;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -72,10 +73,14 @@ use tracing::{debug, info};
 
 #[tracing::instrument]
 pub fn run(config: Config) -> Result<()> {
-    let mut posts = read_posts(&config.submissions, config.limit_posts);
-    info!("Posts with num_comments > 0: {}", posts.len());
+    let limit = config.limit_posts.map(|limit| {
+        Utc.from_local_datetime(&limit.and_hms_opt(0, 0, 0).unwrap())
+            .unwrap()
+    });
+    let mut posts = read_posts(&config.submissions, limit);
+    info!("Found posts: {}", posts.len());
 
-    read_comments(&config.comments, &mut posts, config.limit_posts)?;
+    read_comments(&config.comments, &mut posts, limit)?;
 
     std::fs::remove_dir_all("output")?;
     std::fs::create_dir_all("output/posts")?;
@@ -114,6 +119,9 @@ struct Post {
     selftext_html: Option<String>,
     #[serde(default)]
     comments: Vec<Comment>,
+    #[serde(with = "chrono::serde::ts_seconds")]
+    created_utc: DateTime<Utc>,
+    removed_by_category: Option<String>,
 }
 
 impl From<Post> for render::Post {
@@ -144,19 +152,15 @@ type PostId = String;
 type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
-fn read_posts(path: &PathBuf, limit: Option<usize>) -> Posts {
+fn read_posts(path: &PathBuf, limit: Option<DateTime<Utc>>) -> Posts {
     let limit_description = limit.map_or("all".to_string(), |x| x.to_string());
 
-    debug!("Reading {limit_description} posts from {path:?}");
+    debug!("Reading posts after {limit_description} from {path:?}");
 
-    let lines =
+    let lines: Vec<_> =
         std::io::BufReader::new(std::fs::File::open(path).expect("Could not read {path:?}"))
-            .lines();
-    let lines: Vec<_> = if let Some(limit) = limit {
-        lines.take(limit).collect()
-    } else {
-        lines.collect()
-    };
+            .lines()
+            .collect();
 
     lines
         .into_par_iter()
@@ -169,7 +173,11 @@ fn read_posts(path: &PathBuf, limit: Option<usize>) -> Posts {
 
             (post.id.clone(), post)
         })
-        .filter(|(_id, post)| post.num_comments > 0)
+        .filter(|(_id, post)| {
+            post.num_comments > 0
+                && limit.map(|limit| post.created_utc > limit).unwrap_or(true)
+                && post.removed_by_category.is_none()
+        })
         .collect()
 }
 
@@ -178,6 +186,8 @@ struct Comment {
     parent_id: String,
     body: String,
     author: String,
+    #[serde(with = "chrono::serde::ts_seconds")]
+    created_utc: DateTime<Utc>,
 }
 
 impl From<Comment> for render::Comment {
@@ -187,20 +197,15 @@ impl From<Comment> for render::Comment {
 }
 
 #[tracing::instrument(skip(posts))]
-fn read_comments(path: &PathBuf, posts: &mut Posts, limit_posts: Option<usize>) -> Result<()> {
-    let limit = limit_posts.map(|x| x * 5);
+fn read_comments(path: &PathBuf, posts: &mut Posts, limit: Option<DateTime<Utc>>) -> Result<()> {
     let limit_description = limit.map_or("all".to_string(), |x| x.to_string());
 
-    debug!("Reading {limit_description} comments from {path:?}");
-    let lines =
-        std::io::BufReader::new(std::fs::File::open(path).context("Could not read {path:?}")?)
-            .lines();
+    debug!("Reading comments after {limit_description} from {path:?}");
 
-    let lines: Vec<_> = if let Some(limit) = limit {
-        lines.take(limit).collect()
-    } else {
-        lines.collect()
-    };
+    let lines: Vec<_> =
+        std::io::BufReader::new(std::fs::File::open(path).context("Could not read {path:?}")?)
+            .lines()
+            .collect();
 
     let posts_wrapper = Arc::new(Mutex::new(posts));
 
@@ -218,6 +223,9 @@ fn read_comments(path: &PathBuf, posts: &mut Posts, limit_posts: Option<usize>) 
             comment.body != "[deleted]"
                 && comment.body != "[removed]"
                 && comment.author != "AutoModerator"
+                && limit
+                    .map(|limit| comment.created_utc > limit)
+                    .unwrap_or(true)
         })
         .for_each(|comment| {
             if let Some(post) = posts_wrapper

@@ -12,6 +12,12 @@ cargo install just
 just init # setup repo, install required tools
 ```
 
+This project takes ZSTD-compressed JSON dumps as found in the pushshift archives. Files need to be pre-processed before the tool can use them:
+
+```bash
+bin/preprocess-dump.sh <subreddit_submissions>.zst input/submissions.json
+```
+
 To run:
 ```bash
 just run

@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use chrono::NaiveDate;
 use criterion::{criterion_group, criterion_main, Criterion};
 
 fn run(c: &mut Criterion) {
@@ -12,7 +13,7 @@ fn run(c: &mut Criterion) {
             let config = aharc::config::Config {
                 comments: "input/ah_comments.json".into(),
                 submissions: "input/ah_posts.json".into(),
-                limit_posts: Some(1000),
+                limit_posts: Some(NaiveDate::from_ymd_opt(2022, 10, 01).unwrap()),
             };
             aharc::run(config).unwrap()
         });
