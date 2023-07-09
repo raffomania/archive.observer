@@ -7,7 +7,8 @@ pub struct Comment {
 }
 
 pub struct Post {
-    pub selftext_html: String,
+    pub selftext_html: Option<String>,
+    pub selftext: String,
     pub id: String,
     pub title: String,
     pub real_num_comments: usize,

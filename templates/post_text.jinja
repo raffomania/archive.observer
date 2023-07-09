@@ -1,0 +1,5 @@
+{% if let Some(text) = post.selftext_html %}
+{{text|safe}}
+{% else %}
+{{ post.selftext.as_str()|markdown }}
+{% endif %}

@@ -5,7 +5,8 @@
 {% include "nav.jinja" %}
 <div class="prose mt-2">
   <h2>{{ post.title }}</h2>
-  <div class="ml-8 mb-8">{{ post.selftext_html|safe }}</div>
+  <div class="ml-8 mb-8">{% include "post_text.jinja" %}</div>
+
   {% for comment in post.comments %}
   <div class="pt-4 border-t border-slate">{{ comment.body.as_str()|markdown }}</div>
   {% endfor %}

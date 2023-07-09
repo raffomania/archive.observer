@@ -124,8 +124,8 @@ pub fn run(config: Config) -> Result<()> {
 struct Post {
     title: String,
     id: PostId,
-    selftext: String,
     num_comments: i64,
+    selftext: String,
     selftext_html: Option<String>,
     #[serde(default)]
     comments: Vec<Comment>,
@@ -138,9 +138,9 @@ impl From<Post> for render::Post {
     fn from(post: Post) -> Self {
         let real_num_comments = post.comments.len();
 
-        let selftext_html = post.selftext_html.unwrap_or_default();
-
-        let selftext_html = html_escape::decode_html_entities(&selftext_html).to_string();
+        let selftext_html = post
+            .selftext_html
+            .map(|text| html_escape::decode_html_entities(&text).to_string());
 
         let comments = post
             .comments
@@ -151,6 +151,7 @@ impl From<Post> for render::Post {
         Self {
             real_num_comments,
             selftext_html,
+            selftext: post.selftext,
             id: post.id,
             title: post.title,
             comments,

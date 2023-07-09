@@ -9,7 +9,7 @@
   <a href="/posts/{{post.id}}.html" class="no-underline">
     <h3>{{ post.title }}</h3>
   </a>
-  <p>{{ post.selftext_html|safe }}</p>
+  <p>{% include "post_text.jinja" %}</p>
   <p class="text-sm flex justify-between">
     <a href="/posts/{{post.id}}.html">{{ post.real_num_comments }}
       Answers</a>
