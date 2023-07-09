@@ -79,6 +79,7 @@ pub fn run(config: Config) -> Result<()> {
 
     std::fs::remove_dir_all("output")?;
     std::fs::create_dir_all("output/posts")?;
+    std::fs::create_dir_all("output/pages")?;
 
     debug!("Cleaning up read data");
     let posts_to_render = posts
@@ -88,14 +89,18 @@ pub fn run(config: Config) -> Result<()> {
         .map(render::Post::from)
         .collect::<Vec<_>>();
 
-    // let rendered_posts = posts_to_render.len();
-    // debug!("Rendering {rendered_posts} posts");
+    let total_posts: u32 = posts_to_render.len().try_into()?;
+    debug!("Rendering {total_posts} posts");
     posts_to_render.par_iter().for_each(|post| {
         render::post(post).expect("Failed to render post");
     });
 
-    debug!("Rendering index");
-    render::index(posts_to_render)?;
+    debug!("Rendering pages");
+    let page_size: u32 = 25;
+    let total_pages = (f64::from(total_posts) / f64::from(page_size)).ceil() as usize;
+    for (page, posts) in posts_to_render.chunks(page_size.try_into()?).enumerate() {
+        render::page(posts, page, total_pages)?;
+    }
 
     Ok(())
 }
