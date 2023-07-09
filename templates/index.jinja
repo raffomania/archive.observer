@@ -3,15 +3,21 @@
 {% block content %}
 
 {% include "nav.jinja" %}
+
 {% for post in posts %}
 <div class="mb-8 prose break-words">
   <a href="/posts/{{post.id}}.html" class="no-underline">
     <h3>{{ post.title }}</h3>
   </a>
   <p>{{ post.selftext_html|safe }}</p>
-  <p class="text-sm"><a href="/posts/{{post.id}}.html">{{ post.real_num_comments }} Answers</a></p>
+  <p class="text-sm flex justify-between">
+    <a href="/posts/{{post.id}}.html">{{ post.real_num_comments }}
+      Answers</a>
+    <span class="text-gray-500">{{post.created_at.format("%F")}}</span>
+  </p>
 </div>
 {% endfor %}
+
 <div class="flex justify-center">
   {% if let Some(previous_page) = previous_page %}
   <a class="text-gray-700 px-2" href="/pages/{{previous_page}}.html">⯇</a>

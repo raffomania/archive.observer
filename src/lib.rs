@@ -90,12 +90,14 @@ pub fn run(config: Config) -> Result<()> {
     std::fs::create_dir_all("output/pages")?;
 
     debug!("Cleaning up read data");
-    let posts_to_render = posts
+    let mut posts_to_render = posts
         .into_values()
         .par_bridge()
         .filter(|p| !p.comments.is_empty())
         .map(render::Post::from)
         .collect::<Vec<_>>();
+    posts_to_render.sort_by_key(|post| post.created_at);
+    posts_to_render.reverse();
 
     let total_posts: u32 = posts_to_render.len().try_into()?;
     debug!("Rendering {total_posts} posts");
@@ -152,6 +154,7 @@ impl From<Post> for render::Post {
             id: post.id,
             title: post.title,
             comments,
+            created_at: post.created_utc,
         }
     }
 }

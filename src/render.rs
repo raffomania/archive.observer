@@ -1,5 +1,6 @@
 use anyhow::Result;
 use askama::Template;
+use chrono::{DateTime, Utc};
 
 pub struct Comment {
     pub body: String,
@@ -11,6 +12,7 @@ pub struct Post {
     pub title: String,
     pub real_num_comments: usize,
     pub comments: Vec<Comment>,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Template)]
