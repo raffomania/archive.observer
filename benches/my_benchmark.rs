@@ -13,7 +13,7 @@ fn run(c: &mut Criterion) {
             let config = aharc::config::Config {
                 comments: "input/ah_comments.json".into(),
                 submissions: "input/ah_posts.json".into(),
-                limit_posts: Some(NaiveDate::from_ymd_opt(2022, 11, 01).unwrap()),
+                limit_posts: Some(NaiveDate::from_ymd_opt(2022, 11, 1).unwrap()),
             };
             aharc::run(config).unwrap()
         });

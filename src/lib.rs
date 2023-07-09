@@ -17,7 +17,6 @@
 )]
 // clippy WARN level lints, that can be upgraded to DENY if preferred
 #![warn(
-    clippy::float_arithmetic,
     clippy::modulo_arithmetic,
     clippy::as_conversions,
     clippy::assertions_on_result_states,
@@ -74,8 +73,12 @@ use tracing::{debug, info};
 #[tracing::instrument]
 pub fn run(config: Config) -> Result<()> {
     let limit = config.limit_posts.map(|limit| {
-        Utc.from_local_datetime(&limit.and_hms_opt(0, 0, 0).unwrap())
-            .unwrap()
+        Utc.from_local_datetime(
+            &limit
+                .and_hms_opt(0, 0, 0)
+                .expect("Failed to convert date to datetime"),
+        )
+        .unwrap()
     });
     let mut posts = read_posts(&config.submissions, limit);
     info!("Found posts: {}", posts.len());
@@ -102,9 +105,14 @@ pub fn run(config: Config) -> Result<()> {
 
     debug!("Rendering pages");
     let page_size: u32 = 25;
+    #[allow(
+        clippy::as_conversions,
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss
+    )]
     let total_pages = (f64::from(total_posts) / f64::from(page_size)).ceil() as usize;
-    for (page, posts) in posts_to_render.chunks(page_size.try_into()?).enumerate() {
-        render::page(posts, page, total_pages)?;
+    for (page, page_posts) in posts_to_render.chunks(page_size.try_into()?).enumerate() {
+        render::page(page_posts, page, total_pages)?;
     }
 
     Ok(())
@@ -152,8 +160,8 @@ type PostId = String;
 type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
-fn read_posts(path: &PathBuf, limit: Option<DateTime<Utc>>) -> Posts {
-    let limit_description = limit.map_or("all".to_string(), |x| x.to_string());
+fn read_posts(path: &PathBuf, maybe_limit: Option<DateTime<Utc>>) -> Posts {
+    let limit_description = maybe_limit.map_or("all".to_string(), |x| x.to_string());
 
     debug!("Reading posts after {limit_description} from {path:?}");
 
@@ -175,7 +183,7 @@ fn read_posts(path: &PathBuf, limit: Option<DateTime<Utc>>) -> Posts {
         })
         .filter(|(_id, post)| {
             post.num_comments > 0
-                && limit.map(|limit| post.created_utc > limit).unwrap_or(true)
+                && maybe_limit.map_or(true, |limit| post.created_utc > limit)
                 && post.removed_by_category.is_none()
         })
         .collect()
@@ -197,8 +205,12 @@ impl From<Comment> for render::Comment {
 }
 
 #[tracing::instrument(skip(posts))]
-fn read_comments(path: &PathBuf, posts: &mut Posts, limit: Option<DateTime<Utc>>) -> Result<()> {
-    let limit_description = limit.map_or("all".to_string(), |x| x.to_string());
+fn read_comments(
+    path: &PathBuf,
+    posts: &mut Posts,
+    maybe_limit: Option<DateTime<Utc>>,
+) -> Result<()> {
+    let limit_description = maybe_limit.map_or("all".to_string(), |x| x.to_string());
 
     debug!("Reading comments after {limit_description} from {path:?}");
 
@@ -223,9 +235,7 @@ fn read_comments(path: &PathBuf, posts: &mut Posts, limit: Option<DateTime<Utc>>
             comment.body != "[deleted]"
                 && comment.body != "[removed]"
                 && comment.author != "AutoModerator"
-                && limit
-                    .map(|limit| comment.created_utc > limit)
-                    .unwrap_or(true)
+                && maybe_limit.map_or(true, |limit| comment.created_utc > limit)
         })
         .for_each(|comment| {
             if let Some(post) = posts_wrapper
