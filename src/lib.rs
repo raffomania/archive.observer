@@ -114,8 +114,10 @@ pub fn run(config: Config) -> Result<()> {
     )]
     let total_pages = (f64::from(total_posts) / f64::from(page_size)).ceil() as usize;
     for (page, page_posts) in posts_to_render.chunks(page_size.try_into()?).enumerate() {
-        render::page(page_posts, page, total_pages)?;
+        render::listing(page_posts, page, total_pages)?;
     }
+
+    render::index()?;
 
     Ok(())
 }

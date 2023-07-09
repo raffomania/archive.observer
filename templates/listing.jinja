@@ -1,0 +1,46 @@
+{% extends "layout.jinja" %}
+
+{% block content %}
+
+{% include "nav.jinja" %}
+
+{% for post in posts %}
+<div class="mb-8 prose break-words">
+  <a href="/posts/{{post.id}}.html" class="no-underline">
+    <h3>{{ post.title }}</h3>
+  </a>
+  <p>{% include "post_text.jinja" %}</p>
+  <p class="text-sm flex justify-between">
+    <a href="/posts/{{post.id}}.html">{{ post.real_num_comments }}
+      Answers</a>
+    <span class="text-gray-500">{{post.created_at.format("%F")}}</span>
+  </p>
+</div>
+{% endfor %}
+
+<div class="flex justify-center">
+  {% if let Some(previous_page) = previous_page %}
+  <a class="text-gray-700 px-2" href="/pages/{{previous_page}}.html">⯇</a>
+  {% else %}
+  <span class="text-gray-400 px-2 cursor-default">⯇</span>
+  {% endif %}
+
+  <span class="font-bold px-1">{{page}}</span>
+  <span>/</span>
+  <a class="px-1" href="/pages/{{last_page}}.html">{{last_page}}</a>
+
+  {% if let Some(next_page) = next_page %}
+  <a class="text-gray-700 px-2" href="/pages/{{next_page}}.html">⯈</a>
+  {% else %}
+  <span class="text-gray-400 px-2 cursor-default">⯈</span>
+  {% endif %}
+
+</div>
+
+{% if page > 1 %}
+<p class="text-center mt-2">
+  <a class="text-sm underline text-gray-700" href="/pages/{{0}}.html">Back to start</a>
+</p>
+{% endif %}
+
+{% endblock %}

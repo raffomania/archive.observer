@@ -17,8 +17,8 @@ pub struct Post {
 }
 
 #[derive(Template)]
-#[template(path = "index.jinja")]
-struct IndexTemplate<'a> {
+#[template(path = "listing.jinja")]
+struct ListingTemplate<'a> {
     posts: &'a [Post],
     page: usize,
     last_page: usize,
@@ -26,11 +26,11 @@ struct IndexTemplate<'a> {
     previous_page: Option<usize>,
 }
 
-pub fn page(posts: &[Post], page: usize, total_pages: usize) -> Result<()> {
+pub fn listing(posts: &[Post], page: usize, total_pages: usize) -> Result<()> {
     let last_page = total_pages - 1;
     let next_page = (page < last_page).then(|| page + 1);
     let previous_page = (page > 0).then(|| page - 1);
-    let template = IndexTemplate {
+    let template = ListingTemplate {
         posts,
         page,
         last_page,
@@ -57,6 +57,19 @@ pub fn post(post: &Post) -> Result<()> {
     let output = template.render()?;
     let name = &post.id;
     std::fs::write(format!("output/posts/{name}.html"), output)?;
+
+    Ok(())
+}
+
+#[derive(Template)]
+#[template(path = "index.jinja")]
+struct IndexTemplate;
+
+pub fn index() -> Result<()> {
+    let template = IndexTemplate {};
+
+    let output = template.render()?;
+    std::fs::write("output/index.html", output)?;
 
     Ok(())
 }
