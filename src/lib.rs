@@ -148,6 +148,10 @@ impl From<Post> for render::Post {
             .selftext_html
             .map(|text| html_escape::decode_html_entities(&text).to_string());
 
+        let selftext = html_escape::decode_html_entities(&post.selftext).to_string();
+
+        let title = html_escape::decode_html_entities(&post.title).to_string();
+
         let comments = post
             .comments
             .into_iter()
@@ -157,9 +161,9 @@ impl From<Post> for render::Post {
         Self {
             real_num_comments,
             selftext_html,
-            selftext: post.selftext,
+            selftext,
             id: post.id,
-            title: post.title,
+            title,
             comments,
             created_at: post.created_utc,
         }
