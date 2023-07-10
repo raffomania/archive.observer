@@ -106,5 +106,10 @@ init:
 
 # push the output to netlify
 deploy:
-    just run --limit-posts=2022-06-01 --submissions=input/ah_posts.json --comments=input/ah_comments.json
-    netlify deploy --dir output --prod --site ask-historians-archive
+    just run -- --limit-posts=2022-01-01 --submissions=input/ah_posts.json --comments=input/ah_comments.json
+    rm -f output.zip
+    zip -r output.zip output
+    xh -v POST \
+        https://api.netlify.com/api/v1/sites/ask-historians-archive.netlify.app/deploys \
+        "Content-Type:application/zip" "Authorization:Bearer $NETLIFY_TOKEN" \
+        "@output.zip"

@@ -13,6 +13,7 @@ comments*
 
 # rendered output
 output
+output.zip
 
 # Local Netlify folder
 .netlify
