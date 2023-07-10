@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 
 pub struct Comment {
     pub body: String,
+    pub author: String,
 }
 
 pub struct Post {
@@ -11,6 +12,7 @@ pub struct Post {
     pub selftext: String,
     pub id: String,
     pub title: String,
+    pub author: String,
     pub real_num_comments: usize,
     pub comments: Vec<Comment>,
     pub created_at: DateTime<Utc>,

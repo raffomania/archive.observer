@@ -7,12 +7,37 @@
 {% block content %}
 
 {% include "nav.jinja" %}
-<div class="prose mt-2">
-  <h2 data-pagefind-metadata="title">{{ post.title }}</h2>
-  <div class="ml-8 mb-8">{% include "post_text.jinja" %}</div>
+<div class="prose mt-8">
+  <h2 class="mb-0" data-pagefind-metadata="title">{{ post.title }}</h2>
+  <div class="mb-0">
+    <em>
+      <span class="text-gray-400">by </span>
+      <a class="no-underline" href="https://old.reddit.com/u/{{post.author}}">
+        {{ post.author }}</a>
+    </em>
+  </div>
+  <div class="mb-10 -mt-2">
+    {% include "post_text.jinja" %}
+  </div>
+</div>
 
+<div>
   {% for comment in post.comments %}
-  <div class="pt-4 border-t border-slate">{{ comment.body.as_str()|markdown }}</div>
+  <details class="pb-2 border-t border-slate relative" open>
+    <summary class="ml-1 pt-4 pb-2 overflow-hidden
+        marker:text-gray-400
+        before:box-content 
+        before:bg-gray-100 before:hover:bg-gray-300 
+        before:border-x-8 before:border-white 
+        before:absolute
+        before:left-0 before:w-px before:bottom-5 before:top-12">
+      <em><a href="https://old.reddit.com/u/{{comment.author}}">{{
+          comment.author }}</a></em>
+    </summary>
+    <div class="prose ml-6 pb-4">
+      {{ comment.body.as_str()|markdown }}
+    </div>
+  </details>
   {% endfor %}
 </div>
 {% endblock %}

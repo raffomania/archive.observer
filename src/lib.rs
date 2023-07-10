@@ -127,6 +127,7 @@ pub fn run(config: Config) -> Result<()> {
 #[derive(Serialize, Deserialize, Debug)]
 struct Post {
     title: String,
+    author: String,
     id: PostId,
     num_comments: i64,
     selftext: String,
@@ -162,6 +163,7 @@ impl From<Post> for render::Post {
             selftext,
             id: post.id,
             title,
+            author: post.author,
             comments,
             created_at: post.created_utc,
         }
@@ -210,7 +212,10 @@ struct Comment {
 
 impl From<Comment> for render::Comment {
     fn from(comment: Comment) -> Self {
-        Self { body: comment.body }
+        Self {
+            body: comment.body,
+            author: comment.author,
+        }
     }
 }
 
