@@ -72,17 +72,15 @@ use tracing::{debug, info};
 
 #[tracing::instrument]
 pub fn run(config: Config) -> Result<()> {
-    let limit = config
-        .limit_posts
-        .map(|limit| {
-            Utc.from_local_datetime(
-                &limit
-                    .and_hms_opt(0, 0, 0)
-                    .expect("Failed to convert date to datetime"),
-            )
-            .unwrap()
-        })
-        .unwrap_or(Utc.with_ymd_and_hms(1970, 1, 1, 0, 0, 0).unwrap());
+    let default_limit = Utc.with_ymd_and_hms(1970, 1, 1, 0, 0, 0).unwrap();
+    let limit = config.limit_posts.map_or(default_limit, |limit| {
+        Utc.from_local_datetime(
+            &limit
+                .and_hms_opt(0, 0, 0)
+                .expect("Failed to convert date to datetime"),
+        )
+        .unwrap()
+    });
     let mut posts = read_posts(&config.submissions, limit);
     info!("Found posts: {}", posts.len());
 
