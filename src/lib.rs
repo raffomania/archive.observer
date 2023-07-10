@@ -115,9 +115,9 @@ pub fn run(config: Config) -> Result<()> {
         clippy::cast_possible_truncation,
         clippy::cast_sign_loss
     )]
-    let total_pages = (f64::from(total_posts) / f64::from(page_size)).ceil() as usize;
-    for (page, page_posts) in posts_to_render.chunks(page_size.try_into()?).enumerate() {
-        render::listing(page_posts, page, total_pages)?;
+    let total_pages = (f64::from(total_posts) / f64::from(page_size)).ceil() as usize + 1;
+    for (index, page_posts) in posts_to_render.chunks(page_size.try_into()?).enumerate() {
+        render::listing(page_posts, index + 1, total_pages)?;
     }
 
     render::index()?;

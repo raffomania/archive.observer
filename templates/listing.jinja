@@ -1,8 +1,15 @@
 {% extends "layout.jinja" %}
 
+{% block head %}
+<title>AskHistorians Archive | Page {{page}}</title>
+<link rel="stylesheet" href="/pagefind/pagefind-ui.css">
+{% endblock %}
+
 {% block content %}
 
 {% include "nav.jinja" %}
+
+<div id="search"></div>
 
 {% for post in posts %}
 <div class="mb-8 prose break-words">
@@ -37,10 +44,17 @@
 
 </div>
 
-{% if page > 1 %}
+{% if page > 2 %}
 <p class="text-center mt-2">
-  <a class="text-sm underline text-gray-700" href="/pages/{{0}}.html">Back to start</a>
+  <a class="text-sm underline text-gray-700" href="/pages/{{1}}.html">Back to start</a>
 </p>
 {% endif %}
+
+<script src="/pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    new PagefindUI({ element: "#search", showImages: false });
+  });
+</script>
 
 {% endblock %}

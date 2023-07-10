@@ -1,0 +1,4 @@
+source = "output"
+force_language = "en"
+glob = "posts/*.html"
+bundle_dir = "pagefind"

@@ -5,12 +5,19 @@ set dotenv-load := true
 run *FLAGS:
     cargo run {{FLAGS}}
     just css
+    just index
 
 watch *FLAGS:
-    cargo watch -x run -i output -s 'just css'
+    cargo watch -x run -i output -s 'just css' -s 'just index' {{FLAGS}}
 
-css:
-    npx tailwindcss -i css/main.css -o output/main.css
+index *FLAGS:
+    pagefind {{FLAGS}}
+
+serve *FLAGS:
+    miniserve --index=index.html output {{FLAGS}}
+
+css *FLAGS:
+    npx tailwindcss -i css/main.css -o output/main.css {{FLAGS}}
 
 # Apply strict formatting.
 fmt *FLAGS:
@@ -95,7 +102,9 @@ init:
     cargo install cargo-audit
     cargo install cargo-upgrades
     cargo install cargo-unused-features
+    cargo install pagefind
 
 # push the output to netlify
 deploy:
-    netlify deploy --dir output --prod
+    just run --limit-posts=2022-06-01 --submissions=input/ah_posts.json --comments=input/ah_comments.json
+    netlify deploy --dir output --prod --site ask-historians-archive

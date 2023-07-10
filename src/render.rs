@@ -29,7 +29,7 @@ struct ListingTemplate<'a> {
 pub fn listing(posts: &[Post], page: usize, total_pages: usize) -> Result<()> {
     let last_page = total_pages - 1;
     let next_page = (page < last_page).then(|| page + 1);
-    let previous_page = (page > 0).then(|| page - 1);
+    let previous_page = (page > 1).then(|| page - 1);
     let template = ListingTemplate {
         posts,
         page,

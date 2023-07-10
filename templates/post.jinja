@@ -1,10 +1,14 @@
 {% extends "layout.jinja" %}
 
+{% block head %}
+<title>{{post.title}}</title>
+{% endblock %}
+
 {% block content %}
 
 {% include "nav.jinja" %}
 <div class="prose mt-2">
-  <h2>{{ post.title }}</h2>
+  <h2 data-pagefind-metadata="title">{{ post.title }}</h2>
   <div class="ml-8 mb-8">{% include "post_text.jinja" %}</div>
 
   {% for comment in post.comments %}
