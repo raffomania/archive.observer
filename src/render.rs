@@ -73,3 +73,19 @@ pub fn index() -> Result<()> {
 
     Ok(())
 }
+
+#[derive(Template)]
+#[template(path = "about.jinja")]
+struct AboutTemplate {
+    post_limit: String,
+}
+
+pub fn about(limit: DateTime<Utc>) -> Result<()> {
+    let post_limit = limit.format("%F").to_string();
+    let template = AboutTemplate { post_limit };
+
+    let output = template.render()?;
+    std::fs::write("output/about.html", output)?;
+
+    Ok(())
+}

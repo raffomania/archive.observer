@@ -1,0 +1,28 @@
+{% extends "layout.jinja" %}
+
+{% block content %}
+
+{% include "nav.jinja" %}
+
+{% let md = "
+## About
+
+This is an archive of the subreddit [/r/AskHistorians](https://old.reddit.com/r/AskHistorians/). It's ad-free, works on
+mobile and loads fast.
+
+Posts are sorted in reverse chronological order and filtered to show only those with accepted answers. Since it's hosted
+on the netlify
+free tier, it only contains posts made after {} for now.
+
+The [source code is available on GitHub](https://github.com/raffomania/aharc). If you want to generate your own pages
+for another subreddit, you need to compile it yourself for now - [hit me up on lemmy](https://lemmy.world/u/raffomania)
+if you'd like me to upload pre-compiled binaries.
+
+Made by [Rafael](https://www.rafa.ee) with 🦀.
+"|format(post_limit)%}
+
+<div class="prose">
+    {{ md|markdown}}
+</div>
+
+{% endblock %}

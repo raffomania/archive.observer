@@ -72,14 +72,17 @@ use tracing::{debug, info};
 
 #[tracing::instrument]
 pub fn run(config: Config) -> Result<()> {
-    let limit = config.limit_posts.map(|limit| {
-        Utc.from_local_datetime(
-            &limit
-                .and_hms_opt(0, 0, 0)
-                .expect("Failed to convert date to datetime"),
-        )
-        .unwrap()
-    });
+    let limit = config
+        .limit_posts
+        .map(|limit| {
+            Utc.from_local_datetime(
+                &limit
+                    .and_hms_opt(0, 0, 0)
+                    .expect("Failed to convert date to datetime"),
+            )
+            .unwrap()
+        })
+        .unwrap_or(Utc.with_ymd_and_hms(1970, 1, 1, 0, 0, 0).unwrap());
     let mut posts = read_posts(&config.submissions, limit);
     info!("Found posts: {}", posts.len());
 
@@ -118,6 +121,7 @@ pub fn run(config: Config) -> Result<()> {
     }
 
     render::index()?;
+    render::about(limit)?;
 
     Ok(())
 }
@@ -166,8 +170,8 @@ type PostId = String;
 type Posts = HashMap<PostId, Post>;
 
 #[tracing::instrument]
-fn read_posts(path: &PathBuf, maybe_limit: Option<DateTime<Utc>>) -> Posts {
-    let limit_description = maybe_limit.map_or("all".to_string(), |x| x.to_string());
+fn read_posts(path: &PathBuf, limit: DateTime<Utc>) -> Posts {
+    let limit_description = limit.to_string();
 
     debug!("Reading posts after {limit_description} from {path:?}");
 
@@ -188,9 +192,7 @@ fn read_posts(path: &PathBuf, maybe_limit: Option<DateTime<Utc>>) -> Posts {
             (post.id.clone(), post)
         })
         .filter(|(_id, post)| {
-            post.num_comments > 0
-                && maybe_limit.map_or(true, |limit| post.created_utc > limit)
-                && post.removed_by_category.is_none()
+            post.num_comments > 0 && post.created_utc > limit && post.removed_by_category.is_none()
         })
         .collect()
 }
@@ -211,12 +213,8 @@ impl From<Comment> for render::Comment {
 }
 
 #[tracing::instrument(skip(posts))]
-fn read_comments(
-    path: &PathBuf,
-    posts: &mut Posts,
-    maybe_limit: Option<DateTime<Utc>>,
-) -> Result<()> {
-    let limit_description = maybe_limit.map_or("all".to_string(), |x| x.to_string());
+fn read_comments(path: &PathBuf, posts: &mut Posts, limit: DateTime<Utc>) -> Result<()> {
+    let limit_description = limit.to_string();
 
     debug!("Reading comments after {limit_description} from {path:?}");
 
@@ -241,7 +239,7 @@ fn read_comments(
             comment.body != "[deleted]"
                 && comment.body != "[removed]"
                 && comment.author != "AutoModerator"
-                && maybe_limit.map_or(true, |limit| comment.created_utc > limit)
+                && comment.created_utc > limit
         })
         .for_each(|comment| {
             if let Some(post) = posts_wrapper
