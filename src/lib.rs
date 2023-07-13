@@ -140,7 +140,7 @@ struct Post {
 }
 
 impl From<Post> for render::Post {
-    fn from(post: Post) -> Self {
+    fn from(mut post: Post) -> Self {
         let real_num_comments = post.comments.len();
 
         let selftext_html = post
@@ -151,6 +151,7 @@ impl From<Post> for render::Post {
 
         let title = html_escape::decode_html_entities(&post.title).to_string();
 
+        post.comments.sort_unstable_by_key(|c| -c.score);
         let comments = post
             .comments
             .into_iter()
@@ -208,6 +209,7 @@ struct Comment {
     author: String,
     #[serde(with = "chrono::serde::ts_seconds")]
     created_utc: DateTime<Utc>,
+    score: i64,
 }
 
 impl From<Comment> for render::Comment {
