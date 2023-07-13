@@ -11,8 +11,8 @@ fn run(c: &mut Criterion) {
         b.iter(|| {
             // Always use the same config for benchmarking
             let config = aharc::config::Config {
-                comments: "input/ah_comments.json".into(),
-                submissions: "input/ah_posts.json".into(),
+                comments: "input/test_comments.json".into(),
+                submissions: "input/test_posts.json".into(),
                 limit_posts: Some(NaiveDate::from_ymd_opt(2022, 11, 1).unwrap()),
             };
             aharc::run(config).unwrap()
