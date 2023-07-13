@@ -66,6 +66,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Context, Result};
 use chrono::{DateTime, TimeZone, Utc};
 use config::Config;
+use html_escape::decode_html_entities;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
@@ -106,7 +107,7 @@ pub fn run(config: Config) -> Result<()> {
         render::post(post).expect("Failed to render post");
     });
 
-    debug!("Rendering pages");
+    debug!("Rendering listings");
     let page_size: u32 = 25;
     #[allow(
         clippy::as_conversions,
@@ -214,8 +215,9 @@ struct Comment {
 
 impl From<Comment> for render::Comment {
     fn from(comment: Comment) -> Self {
+        let body = decode_html_entities(&comment.body).to_string();
         Self {
-            body: comment.body,
+            body,
             author: comment.author,
         }
     }
