@@ -7,9 +7,9 @@
 {% block content %}
 
 {% include "nav.jinja" %}
-<div class="prose mt-8">
+<div class="prose mt-8 break-words">
   <h2 class="mb-0" data-pagefind-metadata="title">{{ post.title }}</h2>
-  <div class="mb-0">
+  <div>
     <em>
       <span class="text-gray-400">by </span>
       <a class="no-underline" href="https://old.reddit.com/u/{{post.author}}">
@@ -24,17 +24,17 @@
 <div>
   {% for comment in post.comments %}
   <details class="pb-2 border-t border-slate relative" open>
-    <summary class="ml-1 pt-4 pb-2 overflow-hidden
+    <summary class="pt-4 pb-2 overflow-hidden
         marker:text-gray-400
         before:box-content 
         before:bg-gray-100 before:hover:bg-gray-300 
         before:border-x-8 before:border-white 
         before:absolute
-        before:left-0 before:w-px before:bottom-5 before:top-12">
+        before:-left-1 before:bottom-5 before:top-12 before:w-px">
       <em><a href="https://old.reddit.com/u/{{comment.author}}">{{
           comment.author }}</a></em>
     </summary>
-    <div class="prose ml-6 pb-4">
+    <div class="prose ml-5 pb-4 break-words">
       {{ comment.body.as_str()|markdown }}
     </div>
   </details>
