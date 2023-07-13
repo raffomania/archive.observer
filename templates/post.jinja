@@ -30,11 +30,11 @@
         before:bg-gray-100 before:hover:bg-gray-300 
         before:border-x-8 before:border-white 
         before:absolute
-        before:-left-1 before:bottom-5 before:top-12 before:w-px">
+        before:-left-1 before:bottom-4 before:top-12 before:w-px">
       <em><a href="https://old.reddit.com/u/{{comment.author}}">{{
           comment.author }}</a></em>
     </summary>
-    <div class="prose ml-5 pb-4 break-words">
+    <div class="prose ml-5 pb-3 break-words">
       {{ comment.body.as_str()|markdown }}
     </div>
   </details>
