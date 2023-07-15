@@ -26,3 +26,29 @@
 .pagefind-ui__form::before {
     top: calc(16px * var(--pagefind-ui-scale)) !important;
 }
+
+@layer components {
+    .post-preview {
+        position: relative;
+        max-height: 14rem;
+    }
+
+    .post-preview > *:first-child {
+        margin-top: 0;
+    }
+
+    .post-preview > *:last-child {
+        margin-bottom: 0;
+    }
+
+    .post-preview::after {
+        position: absolute;
+        top: 12.25rem;
+        height: 1.75rem;
+        left: 0;
+        right: 0;
+        background: radial-gradient(ellipse at 50% 150%, rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0) 70%);
+        content: " ";
+        border-bottom: 1px solid theme('colors.gray.200');
+    }
+}
