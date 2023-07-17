@@ -30,7 +30,7 @@
 @layer components {
     .post-preview {
         position: relative;
-        max-height: 14rem;
+        max-height: 15.75rem;
     }
 
     .post-preview > *:first-child {
@@ -43,12 +43,14 @@
 
     .post-preview::after {
         position: absolute;
-        top: 12.25rem;
-        height: 1.75rem;
+        /* If text is shorter than max-height, push the overflow indicator
+        down so it's hidden by the overflow. */
+        top: calc(max(15.75rem - 100%, 0rem) * 20 + 15.75rem - 5.25rem);
+        height: 5.25rem;
         left: 0;
         right: 0;
-        background: radial-gradient(ellipse at 50% 150%, rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0) 70%);
+        background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4) 25%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0.85) 75%, rgba(255, 255, 255, 1));
         content: " ";
-        border-bottom: 1px solid theme('colors.gray.200');
+        pointer-events: none;
     }
 }
