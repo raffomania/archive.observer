@@ -2,6 +2,10 @@
 [![CI](https://github.com/raffomania/aharc/workflows/CI/badge.svg)](https://github.com/raffomania/aharc/actions?query=workflow%3ACI)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/raffomania/aharc/blob/main/LICENSE-MIT)
 
+[https://ask-historians-archive.netlify.app](https://ask-historians-archive.netlify.app)
+
+This is a reader for the /r/AskHistorians subreddit archive. It's ad-free, works on mobile, loads fast, and works without JS.
+
 # Development
 
 Requires `just`, `rustup` and `npm` to bootstrap all tools and configuration.
