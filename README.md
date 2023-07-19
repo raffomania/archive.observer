@@ -4,7 +4,14 @@
 
 [https://ask-historians-archive.netlify.app](https://ask-historians-archive.netlify.app)
 
-This is a reader for the /r/AskHistorians subreddit archive. It's ad-free, works on mobile, loads fast, and works without JS.
+This is a reader for the /r/AskHistorians subreddit archive. It's ad-free, works on mobile, loads fast, and doesn't need JS.
+
+Features:
+
+- Full-text search
+- Collapse comments
+- No AutoMod comments
+- Only shows posts with actual answers
 
 # Development
 
