@@ -1,19 +1,37 @@
-# aharc
+# AskHistorians Archive
 [![CI](https://github.com/raffomania/aharc/workflows/CI/badge.svg)](https://github.com/raffomania/aharc/actions?query=workflow%3ACI)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/raffomania/aharc/blob/main/LICENSE-MIT)
 
 [https://ask-historians-archive.netlify.app](https://ask-historians-archive.netlify.app)
 
-This is a reader for the /r/AskHistorians subreddit archive. It's ad-free, works on mobile, loads fast, and doesn't need JS.
+This is an *unofficial* archive of the subreddit [/r/AskHistorians](https://old.reddit.com/r/AskHistorians/). It's
+ad-free, works on
+mobile, loads fast, and doesn't need JS.
 
-Features:
+## Features
 
 - Full-text search
 - Collapse comments
 - No AutoMod comments
 - Only shows posts with actual answers
 
-# Development
+Posts are sorted in reverse chronological order and filtered to show only those with accepted answers. Since it's hosted
+on the Netlify
+free tier, it only contains posts made after {} for now.
+
+## Project Status
+
+The project is pretty much done for now. I'm actively reviewing pull requests, and I might revisit it in the future if
+enough people request changes :) Here are
+some ideas for improvements:
+
+- Show nested comments
+- Other ways to sort posts, like upvotes, number of answers, chronological order
+- Option to hide read posts
+- Find a way to host more posts
+- Add posts from other subreddits like AskScience
+
+## Your Own Subreddit Archive
 
 Requires `just`, `rustup` and `npm` to bootstrap all tools and configuration.
 For deployment, you need the `netlify` CLI installed.
@@ -49,7 +67,7 @@ To see all available commands:
 just list
 ```
 
-## Similar projects
+## Similar Projects
 
 The [redarc viewer](https://github.com/yakabuff/redarc) allows browsing pushshift dumps, but has a different UI than what I had in mind. It's also not a static site.
 

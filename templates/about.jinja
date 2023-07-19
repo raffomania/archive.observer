@@ -7,10 +7,11 @@
 {% let md = "
 ## About the AskHistorians Archive
 
-This is an archive of the subreddit [/r/AskHistorians](https://old.reddit.com/r/AskHistorians/). It's ad-free, works on
+This is an *unofficial* archive of the subreddit [/r/AskHistorians](https://old.reddit.com/r/AskHistorians/). It's
+ad-free, works on
 mobile, loads fast, and doesn't need JS.
 
-Features:
+### Features
 
 - Full-text search
 - Collapse comments
@@ -21,13 +22,34 @@ Posts are sorted in reverse chronological order and filtered to show only those 
 on the Netlify
 free tier, it only contains posts made after {} for now.
 
+### Contact
+
 Made by [Rafael](https://www.rafa.ee) with 🦀. Check out my other projects:
 
 - [knakk](https://raffomania.itch.io/knakk), a solitaire game with a twist
 - [Song Sonar](https://songsonar.rocks/), a spotify playlist with releases of artists you follow
 
-The [source code is available on GitHub](https://github.com/raffomania/aharc). If you want to generate your own pages
-for another subreddit, you need to compile it yourself for now - [hit me up on lemmy](https://lemmy.world/u/raffomania)
+The [source code is available on GitHub](https://github.com/raffomania/aharc), where
+you can [report bugs and request features](https://github.com/raffomania/aharc/issues) as well.
+You can also [find me on lemmy](https://lemmy.world/u/raffomania) if you don't have a GitHub account.
+
+### Project Status
+
+The project is pretty much done for now. I'm actively reviewing pull requests, and I might revisit it in the future if
+enough people request changes :) Here are
+some ideas for improvements:
+
+- Show nested comments
+- Other ways to sort posts, like upvotes, number of answers, chronological order
+- Option to hide read posts
+- Find a way to host more posts
+- Add posts from other subreddits like AskScience
+
+### Your Own Subreddit Archive
+
+You can generate your own site
+for another subreddit! [Have a look at the README](https://github.com/raffomania/aharc#readme) for instructions
+on compiling the project - [hit me up on lemmy](https://lemmy.world/u/raffomania)
 if you'd like me to upload pre-compiled binaries.
 "|format(post_limit)%}
 
