@@ -105,7 +105,7 @@ init:
     cargo install pagefind
 
 # push the output to netlify
-deploy-netlify site="ask-historians-archive" input_name="ah" limit="2021-06-01":
+deploy-netlify site="ask-historians-archive" input_name="ah" limit="2022-01-01":
     just run --release -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
     rm -f output.zip
     zip -r output.zip output
