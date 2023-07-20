@@ -114,6 +114,6 @@ deploy-netlify site="ask-historians-archive" input_name="ah" limit="2021-06-01":
         "Content-Type:application/zip" "Authorization:Bearer $NETLIFY_TOKEN" \
         "@output.zip"
 
-deploy-ssh target site="ask-historians-archive" input_name="ah" limit="2020-06-01":
+deploy-ssh target site="ask-historians-archive" input_name="ah" limit="2018-01-01":
     just run -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
     rsync --recursive --delete --info=progress2 ./output/ {{target}}
