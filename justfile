@@ -106,7 +106,7 @@ init:
 
 # push the output to netlify
 deploy-netlify site="ask-historians-archive" input_name="ah" limit="2021-06-01":
-    just run -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
+    just run --release -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
     rm -f output.zip
     zip -r output.zip output
     xh -v POST \
@@ -115,5 +115,5 @@ deploy-netlify site="ask-historians-archive" input_name="ah" limit="2021-06-01":
         "@output.zip"
 
 deploy-ssh target site="ask-historians-archive" input_name="ah" limit="2018-01-01":
-    just run -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
+    just run --release -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
     rsync --recursive --delete --info=progress2 ./output/ {{target}}
