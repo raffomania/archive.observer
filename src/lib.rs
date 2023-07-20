@@ -198,7 +198,10 @@ fn read_posts(path: &PathBuf, limit: DateTime<Utc>) -> Posts {
             (post.id.clone(), post)
         })
         .filter(|(_id, post)| {
-            post.num_comments > 0 && post.created_utc > limit && post.removed_by_category.is_none()
+            post.num_comments > 0
+                && post.created_utc > limit
+                && post.removed_by_category.is_none()
+                && post.selftext != "[removed]"
         })
         .collect()
 }
