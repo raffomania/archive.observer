@@ -1,7 +1,7 @@
 {% extends "layout.jinja" %}
 
-{% block head %}
-<title>{{post.title}}</title>
+{% block title %}
+{{post.title}} | {% call super() %}
 {% endblock %}
 
 {% block content %}

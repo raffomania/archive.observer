@@ -5,9 +5,20 @@
   <link rel="stylesheet" href="/main.css" />
   <meta name="viewport" content="width=device-width">
   <meta charset="utf-8">
+  {% let default_title = "AskHistorians Archive Observer"%}
+  <title>{% block title %}{{default_title}}{% endblock %}</title>
   {% block head %}
-  <title>AskHistorians Archive</title>
   {% endblock %}
+  {% let default_description = "An archive viewer for reddit."%}
+  <meta name="description" content="{% block description -%}{{default_description}}{%- endblock %}">
+
+  {# <!-- Facebook Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content=""> #}
 </head>
 
 <body class="m-3 mb-6">

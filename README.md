@@ -2,7 +2,7 @@
 [![CI](https://github.com/raffomania/aharc/workflows/CI/badge.svg)](https://github.com/raffomania/aharc/actions?query=workflow%3ACI)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/raffomania/aharc/blob/main/LICENSE-MIT)
 
-[https://ask-historians-archive.netlify.app](https://ask-historians-archive.netlify.app)
+[https://archive.observer](https://ask-historians-archive.netlify.app)
 
 This is an *unofficial* archive of the subreddit [/r/AskHistorians](https://old.reddit.com/r/AskHistorians/). It's
 ad-free, works on
@@ -28,13 +28,11 @@ some ideas for improvements:
 - Show nested comments
 - Other ways to sort posts, like upvotes, number of answers, chronological order
 - Option to hide read posts
-- Find a way to host more posts
 - Add posts from other subreddits like AskScience
 
 ## Your Own Subreddit Archive
 
 Requires `just`, `rustup` and `npm` to bootstrap all tools and configuration.
-For deployment, you need the `netlify` CLI installed.
 
 ```bash
 cargo install just
