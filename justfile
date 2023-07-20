@@ -105,7 +105,7 @@ init:
     cargo install pagefind
 
 # push the output to netlify
-deploy site="ask-historians-archive" input_name="ah" limit="2022-01-01":
+deploy-netlify site="ask-historians-archive" input_name="ah" limit="2021-06-01":
     just run -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
     rm -f output.zip
     zip -r output.zip output
@@ -113,3 +113,7 @@ deploy site="ask-historians-archive" input_name="ah" limit="2022-01-01":
         https://api.netlify.com/api/v1/sites/{{site}}.netlify.app/deploys \
         "Content-Type:application/zip" "Authorization:Bearer $NETLIFY_TOKEN" \
         "@output.zip"
+
+deploy-ssh target site="ask-historians-archive" input_name="ah" limit="2020-06-01":
+    just run -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
+    rsync --recursive --delete --info=progress2 ./output/ {{target}}
