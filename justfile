@@ -104,15 +104,12 @@ init:
     cargo install cargo-unused-features
     cargo install pagefind
 
-# push the output to netlify
+# Deploy redirects to new site to netlify
 deploy-netlify site="ask-historians-archive" input_name="ah" limit="2022-01-01":
-    just run --release -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
-    rm -f output.zip
-    zip -r output.zip output
-    xh -v POST \
-        https://api.netlify.com/api/v1/sites/{{site}}.netlify.app/deploys \
-        "Content-Type:application/zip" "Authorization:Bearer $NETLIFY_TOKEN" \
-        "@output.zip"
+    rm -rf output
+    mkdir output
+    echo '* https://archive.observer/:splat' > output/_redirects
+    netlify deploy --site="{{site}}" --dir output --prod
 
 deploy-ssh target site="ask-historians-archive" input_name="ah" limit="2018-01-01":
     just run --release -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
