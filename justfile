@@ -111,6 +111,6 @@ deploy-netlify site="ask-historians-archive" input_name="ah" limit="2022-01-01":
     echo '* https://archive.observer/:splat' > output/_redirects
     netlify deploy --site="{{site}}" --dir output --prod
 
-deploy-ssh target site="ask-historians-archive" input_name="ah" limit="2014-01-01":
+deploy-ssh host path site="ask-historians-archive" input_name="ah" limit="2014-01-01":
     just run --release -- --limit-posts={{limit}} --submissions=input/{{input_name}}_posts.json --comments=input/{{input_name}}_comments.json
-    tar -c --zstd ./output | ssh lily 'mkdir ~/data/new.archive.observer && cd ~/data/new.archive.observer && tar -x --zstd'
+    tar -c --zstd ./output | ssh {{host}} 'mkdir {{path}} && cd {{path}} && tar -x --zstd'
