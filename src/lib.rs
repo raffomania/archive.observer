@@ -87,7 +87,7 @@ pub fn run(config: Config) -> Result<()> {
 
     read_comments(&config.comments, &mut posts, limit)?;
 
-    std::fs::remove_dir_all("output")?;
+    let _res = std::fs::remove_dir_all("output");
     std::fs::create_dir_all("output/posts")?;
     std::fs::create_dir_all("output/pages")?;
 
