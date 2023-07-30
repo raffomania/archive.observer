@@ -45,10 +45,16 @@ This project takes ZSTD-compressed JSON dumps as found in the pushshift archives
 bin/preprocess-dump.sh <subreddit_submissions>.zst input/submissions.json
 ```
 
-To run:
+To generate the files for a website:
 ```bash
 just run
 ```
+
+To show a preview of your site, you can install [miniserve](https://github.com/svenstaro/miniserve/) and run
+```bash
+just serve
+```
+to show a preview of the generated files.
 
 To test:
 ```bash
