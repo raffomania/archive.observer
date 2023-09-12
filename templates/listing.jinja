@@ -22,7 +22,7 @@
   </a>
   <p class="text-sm mt-5 flex justify-between">
     <a href="/posts/{{post.id}}.html">{{ post.real_num_comments }}
-      Answers</a>
+      Answer{% if post.real_num_comments > 1 %}s{%endif%}</a>
     <span class="text-gray-500">{{post.created_at.format("%F")}}</span>
   </p>
 </div>
